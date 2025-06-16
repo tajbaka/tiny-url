@@ -1,0 +1,28 @@
+config:
+  target: "http://localhost:8110"
+  phases:
+    - duration: 30
+      arrivalRate: 900
+      name: "debug phase"
+  output: "load-test-report.json"
+  processor: "./src/urlGenerator.js"
+scenarios:
+  - name: "URL Generation"
+    weight: 10
+    flow:
+      # Step 1: Create URLs
+      - function: "generateRandomUrl"
+      - post:
+          url: "/api/shorten"
+          json:
+            longUrl: "{{ randomUrl }}"
+  - name: "URL Retrieval"
+    weight: 90
+    flow:
+      # Step 2: Test redirects
+      - function: "getRandomShortUrl"
+      - get:
+          url: "/{{ randomShortUrl }}"
+          followRedirect: false
+          expect:
+            - statusCode: [301]

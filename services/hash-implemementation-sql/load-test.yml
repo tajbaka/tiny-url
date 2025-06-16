@@ -1,0 +1,18 @@
+config:
+  target: "http://localhost:8100"
+  phases:
+    - duration: 20
+      arrivalRate: 150
+      name: "Ramp up load"
+    - duration: 20
+      arrivalRate: 600
+      name: "Spike load"
+  processor: "./src/urlGenerator.js"
+
+scenarios:
+  - flow:
+      - function: "generateRandomUrl"
+      - post:
+          url: "/api/shorten"
+          json:
+            longUrl: "{{ randomUrl }}"

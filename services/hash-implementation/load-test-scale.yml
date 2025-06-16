@@ -1,0 +1,38 @@
+config:
+  target: "http://localhost:8080"
+  # HTTP configuration for high throughput
+  phases:
+    # Phase 1: Warm-up phase
+    - duration: 10
+      arrivalRate: 100
+      name: "warmup phase"
+    # Phase 2: Ramp up to target load
+    - duration: 20
+      arrivalRate: 1800
+      name: "sustained load phase"
+  # Performance optimizations
+  defaults:
+    timeout: 10
+  processor: "./src/urlGenerator.js"
+
+scenarios:
+  # Scenario 1: Create shortened URLs (30% of traffic)
+  - name: "Create URLs"
+    weight: 10
+    flow:
+      - function: "generateRandomUrl"
+      - post:
+          url: "/api/shorten"
+          json:
+            longUrl: "{{ randomUrl }}"
+
+  # Scenario 2: Test existing shortened URLs (70% of traffic)
+  - name: "Test Redirects"
+    weight: 90
+    flow:
+      - function: "getRandomShortUrl"
+      - get:
+          url: "/{{ randomShortUrl }}"
+          ifTrue: "randomShortUrl"
+          expect:
+            - statusCode: [301, 302, 404] # Allow 404 for when no URLs exist yet

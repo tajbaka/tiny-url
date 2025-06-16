@@ -1,0 +1,26 @@
+{
+  "name": "url-shortener-service",
+  "version": "1.0.0",
+  "description": "URL Shortener Service",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest",
+    "load-test": "npx artillery run load-test.yml",
+    "load-test-scale": "npx artillery run load-test-scale.yml",
+    "docker:restart": "docker compose up -d --build && docker compose down && docker compose up -d",
+    "docker:logs": "docker compose logs -f url-shortener-api",
+    "docker:stats": "docker stats url-shortener-api"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2"
+  }
+}

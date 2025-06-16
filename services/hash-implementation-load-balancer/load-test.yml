@@ -1,0 +1,31 @@
+config:
+  target: "http://localhost:8090"
+  phases:
+    - duration: 20
+      arrivalRate: 150
+      name: "Ramp up load"
+    # - duration: 30
+    #   arrivalRate: 450
+    #   name: "Spike load"
+  processor: "./src/urlGenerator.js"
+
+scenarios:
+  - name: "URL Generation"
+    # weight: 30
+    flow:
+      # Step 1: Create URLs
+      - function: "generateRandomUrl"
+      - post:
+          url: "/api/shorten"
+          json:
+            longUrl: "{{ randomUrl }}"
+  # Does not functon well since the Map is async and does not support concurrent requests well.
+  # - name: "URL Retrieval"
+  #   weight: 70
+  #   flow:
+  #     # Step 2: Test redirects
+  #     - function: "getRandomShortUrl"
+  #     - get:
+  #         url: "/{{ randomShortUrl }}"
+  #         expect:
+  #           - statusCode: [301, 302]
