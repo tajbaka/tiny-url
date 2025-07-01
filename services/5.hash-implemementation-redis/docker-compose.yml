@@ -24,27 +24,6 @@ services:
     networks:
       - redis-network
 
-  # Redis Seeder - Automatically seeds database on startup
-  redis-seeder:
-    image: alpine:latest
-    container_name: redis-seeder
-    environment:
-      - FORCE_SEED=false # Set to true to force reseed existing data
-    volumes:
-      - ./redis-init.sh:/redis-init.sh:ro
-    command: |
-      sh -c "
-        apk add --no-cache curl jq &&
-        chmod +x /redis-init.sh &&
-        /redis-init.sh
-      "
-    depends_on:
-      redis-only-nginx:
-        condition: service_healthy
-    restart: "no" # Only run once per compose up
-    networks:
-      - redis-network
-
   # Hash Service Instance 1
   redis-only-service-1:
     build:

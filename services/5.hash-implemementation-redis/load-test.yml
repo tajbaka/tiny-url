@@ -1,8 +1,8 @@
 config:
   target: "http://localhost:8120"
   phases:
-    - duration: 10
-      arrivalRate: 50
+    - duration: 30
+      arrivalRate: 600
       name: "Ramp up load"
   processor: "./src/urlGenerator.js"
 
