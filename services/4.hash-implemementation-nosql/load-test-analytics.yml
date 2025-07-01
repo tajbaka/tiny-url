@@ -1,0 +1,26 @@
+config:
+  target: "http://localhost:8110"
+  phases:
+    - duration: 30
+      arrivalRate: 600
+      name: "Ramp up load"
+  processor: "./src/urlGenerator.js"
+
+scenarios:
+  - name: "URL Generation"
+    weight: 10
+    flow:
+      - function: "generateRandomUrl"
+      - post:
+          url: "/api/shorten"
+          json:
+            longUrl: "{{ randomUrl }}"
+  - name: "Detailed Analytics Retrieval"
+    weight: 90
+    flow:
+      # Test detailed analytics endpoint
+      - function: "getRandomShortUrl"
+      - get:
+          url: "/api/analytics/{{ randomShortUrl }}"
+          expect:
+            - statusCode: [200]

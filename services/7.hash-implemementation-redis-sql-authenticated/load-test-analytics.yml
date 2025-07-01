@@ -1,0 +1,29 @@
+config:
+  target: "http://localhost:8131"
+  phases:
+    - duration: 30
+      arrivalRate: 600
+      name: "Ramp up load"
+  processor: "./src/loadTestProcessor.js"
+
+scenarios:
+  - name: "URL Generation"
+    weight: 10
+    flow:
+      - function: "generateRandomUrl"
+      - post:
+          url: "/api/shorten"
+          name: "Create Short URL (Auth)"
+          beforeRequest: "addSessionCookie"
+          json:
+            longUrl: "{{ randomUrl }}"
+  - name: "Detailed Analytics Retrieval"
+    weight: 90
+    flow:
+      # Test detailed analytics endpoint
+      - function: "getRandomShortUrl"
+      - get:
+          url: "/api/analytics/{{ randomShortUrl }}"
+          beforeRequest: "addSessionCookie"
+          expect:
+            - statusCode: [200]

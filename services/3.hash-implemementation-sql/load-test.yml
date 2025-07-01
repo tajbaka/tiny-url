@@ -1,0 +1,56 @@
+config:
+  target: "http://localhost:8100"
+  phases:
+    - duration: 30
+      arrivalRate: 600
+      name: "Ramp up load"
+  processor: "./src/urlGenerator.js"
+
+scenarios:
+  - name: "URL Generation"
+    weight: 10
+    flow:
+      - function: "generateRandomUrl"
+      - post:
+          url: "/api/shorten"
+          json:
+            longUrl: "{{ randomUrl }}"
+  - name: "URL Retrieval"
+    weight: 70
+    flow:
+      # Test redirects
+      - function: "getRandomShortUrl"
+      - get:
+          url: "/{{ randomShortUrl }}"
+          followRedirect: false
+          expect:
+            - statusCode: [301]
+  - name: "Basic Stats Retrieval"
+    weight: 10
+    flow:
+      # Test basic stats endpoint
+      - function: "getRandomShortUrl"
+      - get:
+          url: "/api/stats/{{ randomShortUrl }}"
+          expect:
+            - statusCode: [200]
+            - hasProperty: "shortUrl"
+            - hasProperty: "longUrl"
+            - hasProperty: "clicks"
+  - name: "Detailed Analytics Retrieval"
+    weight: 10
+    flow:
+      # Test detailed analytics endpoint
+      - function: "getRandomShortUrl"
+      - get:
+          url: "/api/analytics/{{ randomShortUrl }}"
+          expect:
+            - statusCode: [200]
+            - hasProperty: "url_info"
+            - hasProperty: "access_logs"
+            - hasProperty: "analytics"
+            - hasProperty: "analytics.total_clicks"
+            - hasProperty: "analytics.countries"
+            - hasProperty: "analytics.devices"
+            - hasProperty: "analytics.browsers"
+            - hasProperty: "analytics.referrers"

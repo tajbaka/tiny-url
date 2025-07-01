@@ -1,0 +1,27 @@
+config:
+  target: "http://localhost:8130"
+  phases:
+    - duration: 30
+      arrivalRate: 600
+      name: "Ramp up load"
+  processor: "./src/urlGenerator.js"
+
+scenarios:
+  - name: "URL Generation"
+    weight: 10
+    flow:
+      - function: "generateRandomUrl"
+      - post:
+          url: "/api/shorten"
+          json:
+            longUrl: "{{ randomUrl }}"
+  - name: "URL Retrieval"
+    weight: 90
+    flow:
+      # Step 2: Test redirects
+      - function: "getRandomShortUrl"
+      - get:
+          url: "/{{ randomShortUrl }}"
+          followRedirect: false
+          expect:
+            - statusCode: [301]

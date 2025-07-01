@@ -1,0 +1,315 @@
+services:
+  # PostgreSQL Database (Main Database)
+  hybrid-postgres:
+    image: postgres:15-alpine
+    container_name: hybrid-postgres
+    environment:
+      - POSTGRES_DB=urlshortener
+      - POSTGRES_USER=shortener
+      - POSTGRES_PASSWORD=shortener123
+      - POSTGRES_INITDB_ARGS=--auth-host=md5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5434:5432"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1GB
+        reservations:
+          cpus: "0.75"
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shortener -d urlshortener"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - postgres-redis-network
+
+  # Redis Cache (LRU Cache)
+  hybrid-redis:
+    image: redis:7-alpine
+    container_name: hybrid-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6380:6379"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - postgres-redis-network
+
+  # URL Service Instance 1
+  hybrid-service-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hybrid-service-1
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - INSTANCE_ID=1
+      # PostgreSQL Configuration
+      - DB_HOST=hybrid-postgres
+      - DB_PORT=5432
+      - DB_NAME=urlshortener
+      - DB_USER=shortener
+      - DB_PASSWORD=shortener123
+      # Redis Cache Configuration
+      - REDIS_HOST=hybrid-redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+    volumes:
+      - ./src:/app/src
+      - ./package.json:/app/package.json
+    restart: unless-stopped
+    depends_on:
+      hybrid-postgres:
+        condition: service_healthy
+      hybrid-redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - postgres-redis-network
+
+  # URL Service Instance 2
+  hybrid-service-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hybrid-service-2
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - INSTANCE_ID=2
+      # PostgreSQL Configuration
+      - DB_HOST=hybrid-postgres
+      - DB_PORT=5432
+      - DB_NAME=urlshortener
+      - DB_USER=shortener
+      - DB_PASSWORD=shortener123
+      # Redis Cache Configuration
+      - REDIS_HOST=hybrid-redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+    volumes:
+      - ./src:/app/src
+      - ./package.json:/app/package.json
+    restart: unless-stopped
+    depends_on:
+      hybrid-postgres:
+        condition: service_healthy
+      hybrid-redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - postgres-redis-network
+
+  # URL Service Instance 3
+  hybrid-service-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hybrid-service-3
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - INSTANCE_ID=3
+      # PostgreSQL Configuration
+      - DB_HOST=hybrid-postgres
+      - DB_PORT=5432
+      - DB_NAME=urlshortener
+      - DB_USER=shortener
+      - DB_PASSWORD=shortener123
+      # Redis Cache Configuration
+      - REDIS_HOST=hybrid-redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+    volumes:
+      - ./src:/app/src
+      - ./package.json:/app/package.json
+    restart: unless-stopped
+    depends_on:
+      hybrid-postgres:
+        condition: service_healthy
+      hybrid-redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - postgres-redis-network
+
+  # URL Service Instance 4
+  hybrid-service-4:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hybrid-service-4
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - INSTANCE_ID=4
+      # PostgreSQL Configuration
+      - DB_HOST=hybrid-postgres
+      - DB_PORT=5432
+      - DB_NAME=urlshortener
+      - DB_USER=shortener
+      - DB_PASSWORD=shortener123
+      # Redis Cache Configuration
+      - REDIS_HOST=hybrid-redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+    volumes:
+      - ./src:/app/src
+      - ./package.json:/app/package.json
+    restart: unless-stopped
+    depends_on:
+      hybrid-postgres:
+        condition: service_healthy
+      hybrid-redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - postgres-redis-network
+
+  # Nginx Load Balancer
+  hybrid-nginx:
+    image: nginx:alpine
+    container_name: hybrid-nginx
+    ports:
+      - "8130:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - hybrid-service-1
+      - hybrid-service-2
+      - hybrid-service-3
+      - hybrid-service-4
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - postgres-redis-network
+
+networks:
+  postgres-redis-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

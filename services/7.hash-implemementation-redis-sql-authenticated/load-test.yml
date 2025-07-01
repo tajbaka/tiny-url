@@ -1,0 +1,34 @@
+config:
+  target: "http://localhost:8131"
+  phases:
+    - duration: 30
+      arrivalRate: 100
+      name: "Authenticated Load Test"
+  processor: "./src/loadTestProcessor.js"
+
+scenarios:
+  # Authenticated URL Creation (requires session cookie)
+  - name: "Authenticated URL Shortening"
+    weight: 10
+    flow:
+      - function: "generateRandomUrl"
+      - post:
+          url: "/api/shorten"
+          name: "Create Short URL (Auth)"
+          beforeRequest: "addSessionCookie"
+          json:
+            longUrl: "{{ randomUrl }}"
+          expect:
+            - statusCode: [200]
+
+  # Public URL Retrieval (no authentication required)
+  - name: "Public URL Retrieval"
+    weight: 90
+    flow:
+      - function: "getRandomShortUrl"
+      - get:
+          url: "/{{ randomShortUrl }}"
+          name: "Redirect to Long URL"
+          followRedirect: false
+          expect:
+            - statusCode: [301]

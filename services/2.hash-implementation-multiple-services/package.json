@@ -1,0 +1,26 @@
+{
+  "name": "url-shortener-multi-service",
+  "version": "1.0.0",
+  "description": "URL Shortener Service with Horizontal Scaling",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest",
+    "load-test": "npx artillery run load-test.yml",
+    "seed": "node src/seed.js",
+    "docker:restart": "docker compose down && docker compose up -d --build && sleep 5 && npm run seed",
+    "docker:logs": "docker compose logs -f multi-nginx",
+    "docker:stats": "docker stats multi-service-1 multi-service-2 multi-service-3 multi-service-4 multi-nginx"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2"
+  }
+}
